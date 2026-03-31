@@ -2,6 +2,9 @@ import Link from 'next/link';
 import { getMapPayload } from '@/lib/map/data';
 import { DistrictMapShell } from '@/components/map/DistrictMapShell';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function MapPage() {
   const payload = await getMapPayload();
 
