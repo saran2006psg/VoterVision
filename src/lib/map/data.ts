@@ -175,6 +175,10 @@ const parseWinnerRows = (rows: Array<{
   electors: number;
   validVotes: number;
   candidateName: string;
+  runnerUpParty?: string | null;
+  runnerUpCandidateName?: string | null;
+  runnerUpVoteShare?: string | null;
+  runnerUpVotes?: number | null;
 }>): WinnerRow[] => {
   return rows.map((row) => ({
     constituencyId: row.constituencyId,
@@ -191,6 +195,10 @@ const parseWinnerRows = (rows: Array<{
     electors: row.electors,
     validVotes: row.validVotes,
     candidateName: row.candidateName,
+    runnerUpParty: row.runnerUpParty ?? null,
+    runnerUpCandidateName: row.runnerUpCandidateName ?? null,
+    runnerUpVoteShare: row.runnerUpVoteShare ? toNumber(row.runnerUpVoteShare) : null,
+    runnerUpVotes: row.runnerUpVotes ?? null,
   }));
 };
 
@@ -241,7 +249,34 @@ export const getMapPayload = async (): Promise<MapPayload> => {
     .innerJoin(constituencies, eq(election_results.constituency_id, constituencies.id))
     .where(eq(election_results.winner, true));
 
-  const winnerRows = parseWinnerRows(winnerQueryRows);
+  const runnerUpQueryRows = await db
+    .select({
+      constituencyId: election_results.constituency_id,
+      year: election_results.year,
+      party: election_results.party,
+      votes: election_results.votes,
+      voteShare: election_results.vote_share,
+      candidateName: election_results.candidate_name,
+    })
+    .from(election_results)
+    .where(eq(election_results.position, 2));
+
+  const runnerUpByConstituencyYear = new Map(
+    runnerUpQueryRows.map((row) => [`${row.constituencyId}-${row.year}`, row])
+  );
+
+  const winnerRowsWithRunnerUp = winnerQueryRows.map((row) => {
+    const runnerUp = runnerUpByConstituencyYear.get(`${row.constituencyId}-${row.year}`);
+    return {
+      ...row,
+      runnerUpParty: runnerUp?.party ?? null,
+      runnerUpCandidateName: runnerUp?.candidateName ?? null,
+      runnerUpVoteShare: runnerUp?.voteShare ?? null,
+      runnerUpVotes: runnerUp?.votes ?? null,
+    };
+  });
+
+  const winnerRows = parseWinnerRows(winnerRowsWithRunnerUp);
   const availableYears = [...new Set(winnerRows.map((row) => row.year))].sort((a, b) => b - a);
   const initialYear = availableYears[0] ?? 2021;
 
@@ -280,7 +315,34 @@ export const getYearWinnerSummary = async (year: number): Promise<WinnerRow[]> =
     .innerJoin(constituencies, eq(election_results.constituency_id, constituencies.id))
     .where(and(eq(election_results.winner, true), eq(election_results.year, year)));
 
-  return parseWinnerRows(rows);
+  const runnerUpRows = await db
+    .select({
+      constituencyId: election_results.constituency_id,
+      year: election_results.year,
+      party: election_results.party,
+      votes: election_results.votes,
+      voteShare: election_results.vote_share,
+      candidateName: election_results.candidate_name,
+    })
+    .from(election_results)
+    .where(and(eq(election_results.position, 2), eq(election_results.year, year)));
+
+  const runnerUpByConstituencyYear = new Map(
+    runnerUpRows.map((row) => [`${row.constituencyId}-${row.year}`, row])
+  );
+
+  const winnersWithRunnerUp = rows.map((row) => {
+    const runnerUp = runnerUpByConstituencyYear.get(`${row.constituencyId}-${row.year}`);
+    return {
+      ...row,
+      runnerUpParty: runnerUp?.party ?? null,
+      runnerUpCandidateName: runnerUp?.candidateName ?? null,
+      runnerUpVoteShare: runnerUp?.voteShare ?? null,
+      runnerUpVotes: runnerUp?.votes ?? null,
+    };
+  });
+
+  return parseWinnerRows(winnersWithRunnerUp);
 };
 
 export const getAllCandidatesByConstituencyYear = async (

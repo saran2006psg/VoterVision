@@ -15,14 +15,6 @@ export default async function MapPage() {
         availableYears={payload.availableYears}
         initialYear={payload.initialYear}
       />
-
-      {/* Top Right Back Button */}
-      <Link
-        href="/"
-        className="absolute top-4 right-4 z-[600] rounded-lg border border-slate-300 bg-white/90 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-white transition backdrop-blur-sm shadow-md"
-      >
-        ← Back
-      </Link>
     </main>
   );
 }

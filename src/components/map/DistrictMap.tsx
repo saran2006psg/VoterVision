@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { GeoJSON, MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { Layer } from 'leaflet';
-import { getPartyColor } from '@/lib/map/colors';
+import { getPartyColorByMargin } from '@/lib/map/colors';
 import type { ConstituencyFeatureCollection, WinnerRow, WinnersByYearMap, WinnerHistoryByAcMap } from '@/lib/map/types';
 import { MapTooltip } from './MapTooltip';
 import { Legend } from './Legend';
@@ -237,7 +237,7 @@ export function DistrictMap({
             const isFilteredOut = selectedParty !== null && winner?.party !== selectedParty;
             
             return {
-              fillColor: winner ? getPartyColor(winner.party) : '#9CA3AF',
+              fillColor: winner ? getPartyColorByMargin(winner.party, winner.marginPercentage) : '#9CA3AF',
               weight: selectedAcNo === acNo ? 2.5 : (isFilteredOut ? 0.5 : 1),
               opacity: isFilteredOut ? 0.2 : 0.95,
               color: selectedAcNo === acNo ? '#0f172a' : (isFilteredOut ? '#cbd5e1' : '#334155'),

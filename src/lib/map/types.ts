@@ -15,6 +15,10 @@ export type WinnerRow = {
   electors: number;
   validVotes: number;
   candidateName: string;
+  runnerUpParty: string | null;
+  runnerUpCandidateName: string | null;
+  runnerUpVoteShare: number | null;
+  runnerUpVotes: number | null;
 };
 
 export type WinnerByAcMap = Record<number, WinnerRow>;
