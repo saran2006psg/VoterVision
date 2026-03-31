@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  --vv-bg: #f6f7f2;
+  --vv-text: #101827;
+  --vv-card: #ffffff;
+  --vv-accent: #1f7a8c;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(
+    circle at 15% 20%,
+    #fef7e0 0%,
+    var(--vv-bg) 45%,
+    #eff3f7 100%
+  );
+  color: var(--vv-text);
+  min-height: 100%;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.leaflet-container {
+  background: #f3f4f6;
+}
