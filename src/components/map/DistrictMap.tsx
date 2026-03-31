@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { GeoJSON, MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { Layer } from 'leaflet';
@@ -9,9 +9,10 @@ import type { ConstituencyFeatureCollection, WinnerRow, WinnersByYearMap, Winner
 import { MapTooltip } from './MapTooltip';
 import { Legend } from './Legend';
 import { SidePanel } from './SidePanel';
+import { CandidatesModal } from './CandidatesModal';
 
-// A helper component to automatically fit Tamil Nadu bounds on load
-// and fly to selected constituency
+// A helper component to fit Tamil Nadu on initial load
+// and zoom to selected constituency when clicked
 function MapController({ 
   selectedFeature,
   featureCollection 
@@ -20,26 +21,40 @@ function MapController({
   featureCollection: ConstituencyFeatureCollection;
 }) {
   const map = useMap();
+  const hasInitialized = useRef(false);
   
-  // Fit all features on mount
+  // ONLY fit all features on initial mount - NEVER re-run
   useEffect(() => {
-    if (featureCollection && featureCollection.features.length > 0) {
-      const geojsonLayer = L.geoJSON(featureCollection as any);
-      const bounds = geojsonLayer.getBounds();
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 9.3 });
-      }
+    if (!hasInitialized.current && featureCollection && featureCollection.features.length > 0) {
+      const timer = setTimeout(() => {
+        const geojsonLayer = L.geoJSON(featureCollection as any);
+        const bounds = geojsonLayer.getBounds();
+        if (bounds.isValid()) {
+          map.fitBounds(bounds, { padding: [80, 350], maxZoom: 7.8, animate: false });
+          hasInitialized.current = true;
+        }
+      }, 50);
+      return () => clearTimeout(timer);
     }
-  }, [map, featureCollection]);
+  }, [featureCollection, map]);
   
-  // Fly to selected feature
+  // FLY to selected feature when clicked - independent effect
   useEffect(() => {
-    if (selectedFeature) {
-      const layer = L.geoJSON(selectedFeature);
-      const bounds = layer.getBounds();
-      if (bounds.isValid()) {
-        map.flyToBounds(bounds, { padding: [100, 100], duration: 1.2, maxZoom: 10 });
-      }
+    if (selectedFeature && hasInitialized.current) {
+      const timer = setTimeout(() => {
+        const layer = L.geoJSON(selectedFeature);
+        const bounds = layer.getBounds();
+        if (bounds.isValid()) {
+          // Fly to the constituency smoothly - keep it focused
+          map.flyToBounds(bounds, { 
+            padding: [80, 200],
+            duration: 0.7,
+            maxZoom: 11,
+            animate: true 
+          });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [selectedFeature, map]);
   
@@ -57,8 +72,8 @@ type DistrictMapProps = {
 // Tamil Nadu ONLY - strict, tight bounds
 // These bounds ensure only Tamil Nadu is visible and fills the screen
 const TN_BOUNDS: [[number, number], [number, number]] = [
-  [8.08, 76.32],   // Southwest
-  [13.18, 80.28],  // Northeast
+  [8.1, 76.4],     // Southwest
+  [13.1, 80.2],    // Northeast
 ];
 const TN_CENTER: [number, number] = [11.0, 78.3];
 
@@ -77,6 +92,10 @@ export function DistrictMap({
   const [selectedParty, setSelectedParty] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  
+  // Modal state for candidates
+  const [showCandidatesModal, setShowCandidatesModal] = useState(false);
+  const [selectedConstituencyId, setSelectedConstituencyId] = useState<number | null>(null);
 
   const winnerByAc = useMemo(() => winnersByYear[selectedYear] ?? {}, [selectedYear, winnersByYear]);
 
@@ -190,15 +209,15 @@ export function DistrictMap({
 
       <MapContainer
         center={TN_CENTER}
-        zoom={9.3}
-        minZoom={9}
-        maxZoom={13}
+        zoom={7.5}
+        minZoom={7}
+        maxZoom={14}
         zoomControl={false}
         className="h-full w-full"
         maxBounds={TN_BOUNDS}
         maxBoundsViscosity={1.0}
       >
-        <ZoomControl position="bottomright" />
+        <ZoomControl position="bottomright" zoomInTitle="Zoom In" zoomOutTitle="Zoom Out" />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -250,7 +269,22 @@ export function DistrictMap({
         selectedWinner={selectedWinner}
         winnerHistory={selectedHistory}
         year={selectedYear}
+        constituencyId={selectedWinner?.constituencyId ?? 0}
         onClose={() => setSelectedAcNo(null)}
+        onViewCandidates={() => {
+          if (selectedWinner?.constituencyId) {
+            setSelectedConstituencyId(selectedWinner.constituencyId);
+            setShowCandidatesModal(true);
+          }
+        }}
+      />
+
+      <CandidatesModal
+        open={showCandidatesModal}
+        constituencyName={selectedFeature?.properties.name ?? ''}
+        constituencyId={selectedConstituencyId ?? 0}
+        year={selectedYear}
+        onClose={() => setShowCandidatesModal(false)}
       />
     </div>
   );

@@ -33,6 +33,18 @@ export type ConstituencyFeature = Feature<Geometry, ConstituencyFeatureProps>;
 
 export type ConstituencyFeatureCollection = FeatureCollection<Geometry, ConstituencyFeatureProps>;
 
+export type CandidateResult = {
+  constituencyId: number;
+  acNo: number;
+  constituencyName: string;
+  year: number;
+  party: string;
+  votes: number;
+  voteShare: number;
+  position: number;
+  candidateName: string;
+};
+
 export type MapPayload = {
   featureCollection: ConstituencyFeatureCollection;
   winnersByYear: WinnersByYearMap;

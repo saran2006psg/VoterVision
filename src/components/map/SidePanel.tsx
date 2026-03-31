@@ -10,7 +10,9 @@ type SidePanelProps = {
   selectedWinner: WinnerRow | null;
   winnerHistory: WinnerRow[];
   year: number;
+  constituencyId: number;
   onClose: () => void;
+  onViewCandidates: () => void;
 };
 
 export function SidePanel({
@@ -20,7 +22,9 @@ export function SidePanel({
   selectedWinner,
   winnerHistory,
   year,
+  constituencyId,
   onClose,
+  onViewCandidates,
 }: SidePanelProps) {
   return (
     <AnimatePresence>
@@ -65,6 +69,14 @@ export function SidePanel({
                 <p className="text-sm text-slate-700">
                   Turnout: <span className="font-semibold text-slate-900">{selectedWinner.turnoutPercentage.toFixed(2)}%</span>
                 </p>
+                
+                <button
+                  type="button"
+                  onClick={onViewCandidates}
+                  className="mt-4 w-full rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition"
+                >
+                  View All Candidates
+                </button>
               </>
             ) : (
               <p className="text-sm text-slate-600">No winner data available for this year.</p>

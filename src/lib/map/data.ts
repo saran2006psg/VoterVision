@@ -5,6 +5,7 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/drizzle';
 import { constituencies, election_results } from '@/db/schema';
 import type {
+  CandidateResult,
   ConstituencyFeature,
   ConstituencyFeatureCollection,
   MapPayload,
@@ -66,11 +67,12 @@ const loadPublicGeoJson = async (): Promise<ConstituencyFeatureCollection | null
     }
 
     // Tamil Nadu bounds: only include features within TN
+    // Precise bounds to include all of TN and exclude neighboring states
     const TN_BOUNDS = {
-      minLat: 8.05,
+      minLat: 8.0,
       maxLat: 13.25,
       minLon: 76.25,
-      maxLon: 80.30,
+      maxLon: 80.35,
     };
 
     const features = raw.features
@@ -279,4 +281,44 @@ export const getYearWinnerSummary = async (year: number): Promise<WinnerRow[]> =
     .where(and(eq(election_results.winner, true), eq(election_results.year, year)));
 
   return parseWinnerRows(rows);
+};
+
+export const getAllCandidatesByConstituencyYear = async (
+  constituencyId: number,
+  year: number
+): Promise<CandidateResult[]> => {
+  const rows = await db
+    .select({
+      constituencyId: constituencies.id,
+      acNo: constituencies.ac_no,
+      constituencyName: constituencies.name,
+      year: election_results.year,
+      party: election_results.party,
+      votes: election_results.votes,
+      voteShare: election_results.vote_share,
+      position: election_results.position,
+      candidateName: election_results.candidate_name,
+    })
+    .from(election_results)
+    .innerJoin(constituencies, eq(election_results.constituency_id, constituencies.id))
+    .where(
+      and(
+        eq(election_results.constituency_id, constituencyId),
+        eq(election_results.year, year)
+      )
+    );
+
+  return rows
+    .map((row) => ({
+      constituencyId: row.constituencyId,
+      acNo: row.acNo,
+      constituencyName: row.constituencyName,
+      year: row.year,
+      party: row.party,
+      votes: row.votes,
+      voteShare: toNumber(row.voteShare),
+      position: row.position,
+      candidateName: row.candidateName,
+    }))
+    .sort((a, b) => a.position - b.position);
 };
