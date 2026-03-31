@@ -10,10 +10,29 @@ import { MapTooltip } from './MapTooltip';
 import { Legend } from './Legend';
 import { SidePanel } from './SidePanel';
 
-// A helper component to automatically fly to a selected constituency
-function MapController({ selectedFeature }: { selectedFeature: any }) {
+// A helper component to automatically fit Tamil Nadu bounds on load
+// and fly to selected constituency
+function MapController({ 
+  selectedFeature,
+  featureCollection 
+}: { 
+  selectedFeature: any;
+  featureCollection: ConstituencyFeatureCollection;
+}) {
   const map = useMap();
   
+  // Fit all features on mount
+  useEffect(() => {
+    if (featureCollection && featureCollection.features.length > 0) {
+      const geojsonLayer = L.geoJSON(featureCollection as any);
+      const bounds = geojsonLayer.getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 9.3 });
+      }
+    }
+  }, [map, featureCollection]);
+  
+  // Fly to selected feature
   useEffect(() => {
     if (selectedFeature) {
       const layer = L.geoJSON(selectedFeature);
@@ -35,7 +54,13 @@ type DistrictMapProps = {
   initialYear: number;
 };
 
-const TN_CENTER: [number, number] = [10.7905, 78.7047];
+// Tamil Nadu ONLY - strict, tight bounds
+// These bounds ensure only Tamil Nadu is visible and fills the screen
+const TN_BOUNDS: [[number, number], [number, number]] = [
+  [8.08, 76.32],   // Southwest
+  [13.18, 80.28],  // Northeast
+];
+const TN_CENTER: [number, number] = [11.0, 78.3];
 
 export function DistrictMap({
   featureCollection,
@@ -78,11 +103,11 @@ export function DistrictMap({
   const selectedHistory = selectedAcNo ? winnerHistoryByAc[selectedAcNo] ?? [] : [];
 
   return (
-    <div className="relative h-[calc(100vh-7rem)] min-h-[620px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+    <div className="relative h-full w-full overflow-hidden bg-white">
       {/* Top Left Menu Panel */}
-      <div className="pointer-events-none absolute left-3 top-3 z-[1000] flex w-64 flex-col gap-3">
+      <div className="pointer-events-none absolute left-3 top-4 z-[500] flex w-72 flex-col gap-3">
         {/* Year Selector */}
-        <div className="pointer-events-auto rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm">
+        <div className="pointer-events-auto rounded-lg border border-slate-300 bg-white/98 p-3 shadow-lg backdrop-blur-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Election Year</p>
           <select
             value={selectedYear}
@@ -102,7 +127,7 @@ export function DistrictMap({
         </div>
 
         {/* Search Bar */}
-        <div className="pointer-events-auto relative rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm">
+        <div className="pointer-events-auto relative rounded-lg border border-slate-300 bg-white/98 p-3 shadow-lg backdrop-blur-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Search Constituency</p>
           <input
             type="text"
@@ -146,7 +171,7 @@ export function DistrictMap({
       </div>
 
       {/* Legend Map Toggle */}
-      <div className="pointer-events-none absolute bottom-3 left-3 z-[1000]">
+      <div className="pointer-events-none absolute bottom-4 left-3 z-[500]">
         <Legend 
            selectedParty={selectedParty} 
            onToggleParty={(party) => setSelectedParty(prev => prev === party ? null : party)} 
@@ -154,7 +179,7 @@ export function DistrictMap({
       </div>
 
       {hoveredFeature ? (
-        <div className="pointer-events-none absolute right-3 top-3 z-[1000] max-w-xs">
+        <div className="pointer-events-none absolute right-4 top-4 z-[500] max-w-xs">
           <MapTooltip
             winner={winnerByAc[hoveredFeature.properties.ac_no] ?? null}
             constituencyName={hoveredFeature.properties.name}
@@ -165,11 +190,13 @@ export function DistrictMap({
 
       <MapContainer
         center={TN_CENTER}
-        zoom={7.2}
-        minZoom={6.5}
-        maxZoom={11}
+        zoom={9.3}
+        minZoom={9}
+        maxZoom={13}
         zoomControl={false}
         className="h-full w-full"
+        maxBounds={TN_BOUNDS}
+        maxBoundsViscosity={1.0}
       >
         <ZoomControl position="bottomright" />
         <TileLayer
@@ -178,7 +205,7 @@ export function DistrictMap({
         />
 
         {/* This component will listen to selectedAcNo changes and fly the map to the bounds */}
-        <MapController selectedFeature={selectedFeature} />
+        <MapController selectedFeature={selectedFeature} featureCollection={featureCollection} />
 
         <GeoJSON
           key={`${selectedYear}-${selectedParty}`} // re-render when year or party filter changes

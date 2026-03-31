@@ -65,9 +65,38 @@ const loadPublicGeoJson = async (): Promise<ConstituencyFeatureCollection | null
       return null;
     }
 
+    // Tamil Nadu bounds: only include features within TN
+    const TN_BOUNDS = {
+      minLat: 8.05,
+      maxLat: 13.25,
+      minLon: 76.25,
+      maxLon: 80.30,
+    };
+
     const features = raw.features
       .map((feature) => normalizeFeature(feature))
-      .filter((feature): feature is ConstituencyFeature => feature !== null);
+      .filter((feature): feature is ConstituencyFeature => feature !== null)
+      .filter((feature) => {
+        // Filter to only Tamil Nadu based on geometry bounds
+        const geometry = feature.geometry as any;
+        if (!geometry || !geometry.coordinates) return false;
+
+        // For Polygon: coordinates[0][0] or check centroid
+        if (geometry.type === 'Polygon' && Array.isArray(geometry.coordinates[0])) {
+          const coords = geometry.coordinates[0];
+          const centerLon = coords.reduce((sum: number, c: any) => sum + c[0], 0) / coords.length;
+          const centerLat = coords.reduce((sum: number, c: any) => sum + c[1], 0) / coords.length;
+          return centerLat >= TN_BOUNDS.minLat && centerLat <= TN_BOUNDS.maxLat &&
+                 centerLon >= TN_BOUNDS.minLon && centerLon <= TN_BOUNDS.maxLon;
+        }
+
+        // For MultiPolygon
+        if (geometry.type === 'MultiPolygon') {
+          return true; // Keep multipolygon features
+        }
+
+        return true;
+      });
 
     if (features.length === 0) {
       return null;

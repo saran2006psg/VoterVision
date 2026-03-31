@@ -8,7 +8,12 @@ const DistrictMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[70vh] animate-pulse rounded-3xl border border-slate-200 bg-slate-100" />
+      <div className="h-full w-full flex items-center justify-center bg-slate-100 animate-pulse">
+        <div className="text-center space-y-3">
+          <div className="inline-block px-8 py-3 bg-slate-200 rounded-lg"></div>
+          <p className="text-slate-500 text-sm">Loading Tamil Nadu map...</p>
+        </div>
+      </div>
     ),
   },
 );
@@ -19,5 +24,9 @@ type DistrictMapShellProps = Pick<
 >;
 
 export function DistrictMapShell(props: DistrictMapShellProps) {
-  return <DistrictMap {...props} />;
+  return (
+    <div className="h-full w-full">
+      <DistrictMap {...props} />
+    </div>
+  );
 }

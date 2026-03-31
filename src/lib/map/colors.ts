@@ -1,15 +1,15 @@
 const PARTY_COLOR_MAP: Record<string, string> = {
   DMK: '#00A651',
-  AIADMK: '#FF9933',
+  ADMK: '#FF9933',
   BJP: '#FF0000',
   INC: '#00B0F0',
   OTHERS: '#6B7280',
 };
 
 const PARTY_ALIASES: Record<string, string> = {
-  ADMK: 'AIADMK',
-  AIDMK: 'AIADMK',
-  AIADMK: 'AIADMK',
+  AIADMK: 'ADMK',
+  AIDMK: 'ADMK',
+  ADMK: 'ADMK',
 };
 
 export const normalizePartyName = (party: string) => {
@@ -24,7 +24,7 @@ export const getPartyColor = (party: string) => {
 
 export const getLegendEntries = () => [
   { party: 'DMK', color: PARTY_COLOR_MAP.DMK },
-  { party: 'AIADMK', color: PARTY_COLOR_MAP.AIADMK },
+  { party: 'ADMK', color: PARTY_COLOR_MAP.ADMK },
   { party: 'BJP', color: PARTY_COLOR_MAP.BJP },
   { party: 'INC', color: PARTY_COLOR_MAP.INC },
   { party: 'Others', color: PARTY_COLOR_MAP.OTHERS },

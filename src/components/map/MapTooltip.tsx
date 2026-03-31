@@ -8,9 +8,9 @@ type MapTooltipProps = {
 
 export function MapTooltip({ winner, constituencyName, district }: MapTooltipProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm">
-      <p className="text-xs uppercase tracking-wide text-slate-500">{district}</p>
-      <h3 className="text-sm font-semibold text-slate-900">{constituencyName}</h3>
+    <div className="rounded-lg border border-slate-300 bg-white/98 p-3 shadow-lg backdrop-blur-sm\">
+      <p className="text-xs uppercase tracking-[0.1em] font-medium text-slate-500\">{district}</p>
+      <h3 className="text-base font-bold text-slate-900 mt-1\">{constituencyName}</h3>
       {winner ? (
         <div className="mt-2 space-y-1 text-xs text-slate-700">
           <p>

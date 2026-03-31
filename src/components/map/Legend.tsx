@@ -9,8 +9,8 @@ export function Legend({ selectedParty, onToggleParty }: LegendProps) {
   const entries = getLegendEntries();
 
   return (
-    <div className="pointer-events-auto rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Winner Party</p>
+    <div className="pointer-events-auto rounded-lg border border-slate-300 bg-white/98 p-3 shadow-lg backdrop-blur-sm\">
+      <p className="mb-2.5 text-xs font-bold uppercase tracking-[0.1em] text-slate-600\">Winner Party</p>
       <ul className="space-y-1">
         {entries.map((entry) => {
           const isSelected = selectedParty === null || selectedParty === entry.party;
