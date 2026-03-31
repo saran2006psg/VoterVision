@@ -2,7 +2,7 @@
 
 A modern web application for visualizing Tennessee electoral district data and voting patterns. Built with Next.js, Leaflet, and PostgreSQL.
 
-## Features
+## Feature
 
 - 🗺️ **Interactive Map** - Explore Tennessee's constituencies with an interactive Leaflet-based map
 - 📊 **Election Data Visualization** - View electoral results with color-coded districts by winning party
